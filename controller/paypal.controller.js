@@ -65,14 +65,14 @@ const paypalCheckout = async (req, res) => {
             {
               name: "Test Item",
               sku: "ITEM001",
-              price: "10.00",
+              price: "100.00",
               currency: "USD",
               quantity: 1,
             },
           ],
         },
         amount: {
-          total: "10.00",
+          total: "100.00",
           currency: "USD",
         },
         description: "Test Description",
@@ -83,8 +83,11 @@ const paypalCheckout = async (req, res) => {
   try {
     paypal.payment.create(paymentData, (error, payment) => {
       if (error) {
-        console.error(error);
+        console.error(error.message);
         res.redirect("/api/paypal/cancel");
+        // if (error.response && error.response.details) {
+        //     console.log("Validation Error Details:", error.response.details);
+        //   }
       } else {
         for (let i = 0; i < payment.links.length; i++) {
           if (payment.links[i].rel === "approval_url") {
@@ -96,7 +99,7 @@ const paypalCheckout = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
     res.redirect("/api/paypal/cancel");
   }
 };
