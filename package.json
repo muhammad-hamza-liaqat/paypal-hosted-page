@@ -20,5 +20,8 @@
     "express": "^4.19.2",
     "paypal-rest-sdk": "^1.8.1",
     "pug": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/paypal-rest-sdk": "^1.7.9"
   }
 }

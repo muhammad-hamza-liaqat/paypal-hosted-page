@@ -6,12 +6,13 @@ html(lang="en")
     title Shopping Cart
   body
     h1 Shopping Cart
-    h3 Node.js and Express book
-    p Price: $500.00
+    h3 Test Item 
+    p Price: $10.00
+    p sku: ITEM001
     p Quantity: 1
     br
-    h3 JavaScript T-Shirt
-    p Price: $20.00
-    p Quantity: 2
+    //- h3 JavaScript T-Shirt
+    //- p Price: $20.00
+    //- p Quantity: 2
     form(action="/api/paypal/checkout-session", method="post")
       input(type="submit", value="Proceed to Checkout")
