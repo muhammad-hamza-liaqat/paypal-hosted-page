@@ -26,8 +26,8 @@ const paypalCheckout = async (req, res) => {
       payment_method: "paypal",
     },
     redirect_urls: {
-      return_url: "http://localhost:3000/api/paypal/success",
-      cancel_url: "http://localhost:3000/api/paypal/cancel",
+      return_url: "https://paypal-server.loca.lt/api/paypal/success",
+      cancel_url: "https://paypal-server.loca.lt/api/paypal/cancel",
     },
     transactions: [
       {
@@ -75,9 +75,35 @@ const paypalCheckout = async (req, res) => {
   }
 };
 
+const webHookEvent = async (req, res) => {
+  const webhookEvent = req.body;
+
+  if (
+    webhookEvent.event_type === "PAYMENT.SALE.COMPLETED" ||
+    webhookEvent.event_type === "PAYMENT.SALE.DENIED"
+  ) {
+    const saleId = webhookEvent.resource.id;
+
+    paypal.sale.get(saleId, (error, sale) => {
+      if (error) {
+        console.error("Error fetching sale details:", error.response);
+        return res.status(500).json({ error: "Failed to fetch sale details" });
+      }
+
+      console.log("Sale details:", sale);
+
+      res.status(200).end();
+    });
+  } else {
+    console.log("Received webhook:", webhookEvent);
+    res.status(200).end();
+  }
+};
+
 module.exports = {
   paypalCheckout,
   productPageRender,
   cancelPayment,
   successPayment,
+  webHookEvent,
 };
