@@ -2,7 +2,7 @@ const paypal = require("paypal-rest-sdk");
 
 // mode: "live" for live production
 paypal.configure({
-  mode: "sandbox",
+  mode: process.env.PAYPAL_MODE,
   client_id: process.env.PAYPAL_CLIENT_ID,
   client_secret: process.env.PAYPAL_SECRET_ID,
 });
@@ -15,8 +15,47 @@ const cancelPayment = async (req, res) => {
   return res.status(400).json({ message: "the payment was cancelled!" });
 };
 
+// const successPayment = async (req, res) => {
+//   return res.status(201).json({message: "payment is successful!"})
+// };
 const successPayment = async (req, res) => {
-  return res.status(200).json({ message: "payment is made successfully!" });
+  try {
+    const payerId = req.query.PayerID;
+    const paymentId = req.query.paymentId;
+
+    const execute_payment_json = {
+      payer_id: payerId,
+      transactions: [
+        {
+          amount: {
+            currency: "USD",
+            total: "100.00",
+          },
+        },
+      ],
+    };
+
+    paypal.payment.execute(
+      paymentId,
+      execute_payment_json,
+      function (error, payment) {
+        if (error) {
+          console.error(error.response);
+          throw error;
+        } else {
+          console.log(JSON.stringify(payment));
+          return res
+            .status(201)
+            .json({ message: "payment success!", data: payment });
+        }
+      }
+    );
+  } catch (error) {
+    console.error(error.message);
+    return res
+      .status(500)
+      .json({ error: "An error occurred while processing the payment." });
+  }
 };
 
 const paypalCheckout = async (req, res) => {
@@ -27,10 +66,9 @@ const paypalCheckout = async (req, res) => {
     },
     redirect_urls: {
       // return_url: "https://paypal-server.loca.lt/api/paypal/success",
-      return_url: "http://localhost:3000/api/paypal/success",
       // cancel_url: "https://paypal-server.loca.lt/api/paypal/cancel",
       cancel_url: "http://localhost:3000/api/paypal/cancel",
-
+      return_url: "http://localhost:3000/api/paypal/success",
     },
     transactions: [
       {
@@ -49,19 +87,20 @@ const paypalCheckout = async (req, res) => {
           total: "100.00",
           currency: "USD",
         },
-        description: "Test Description",
+        description: "testing paypal in sandbox- nodejs enviroment",
       },
     ],
+    // experience_profile_id: "XP-XXXX-XXXX-XXXX-XXXX"
   };
 
   try {
     paypal.payment.create(paymentData, (error, payment) => {
       if (error) {
-        console.error(error.message);
+        console.error(
+          "an error occured at paypal.payment.create function",
+          error.message
+        );
         res.redirect("/api/paypal/cancel");
-        // if (error.response && error.response.details) {
-        //     console.log("Validation Error Details:", error.response.details);
-        //   }
       } else {
         for (let i = 0; i < payment.links.length; i++) {
           if (payment.links[i].rel === "approval_url") {
@@ -95,7 +134,7 @@ const webHookEvent = async (req, res) => {
 
       console.log("Sale details:", sale);
 
-      return res.status(200).json({message: "webHook exceuted!", sale: sale});
+      return res.status(200).json({ message: "webHook exceuted!", sale: sale });
     });
   } else {
     console.log("Received webhook:", webhookEvent);
