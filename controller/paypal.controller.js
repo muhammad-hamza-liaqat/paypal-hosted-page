@@ -15,9 +15,6 @@ const cancelPayment = async (req, res) => {
   return res.status(400).json({ message: "the payment was cancelled!" });
 };
 
-// const successPayment = async (req, res) => {
-//   return res.status(201).json({message: "payment is successful!"})
-// };
 const successPayment = async (req, res) => {
   try {
     const payerId = req.query.PayerID;
@@ -29,7 +26,7 @@ const successPayment = async (req, res) => {
         {
           amount: {
             currency: "USD",
-            total: "100.00",
+            total: "1000.00",
           },
         },
       ],
@@ -67,8 +64,8 @@ const paypalCheckout = async (req, res) => {
     redirect_urls: {
       // return_url: "https://paypal-server.loca.lt/api/paypal/success",
       // cancel_url: "https://paypal-server.loca.lt/api/paypal/cancel",
-      cancel_url: "http://localhost:3000/api/paypal/cancel",
-      return_url: "http://localhost:3000/api/paypal/success",
+      cancel_url: "https://stripe.loca.lt/api/paypal/cancel",
+      return_url: "https://stripe.loca.lt/api/paypal/success",
     },
     transactions: [
       {
@@ -77,14 +74,14 @@ const paypalCheckout = async (req, res) => {
             {
               name: "Test Item",
               sku: "ITEM001",
-              price: "100.00",
+              price: "1000.00",
               currency: "USD",
               quantity: 1,
             },
           ],
         },
         amount: {
-          total: "100.00",
+          total: "1000.00",
           currency: "USD",
         },
         description: "testing paypal in sandbox- nodejs enviroment",
@@ -118,29 +115,41 @@ const paypalCheckout = async (req, res) => {
 };
 
 const webHookEvent = async (req, res) => {
-  const webhookEvent = req.body;
+  try {
+    console.log("Webhook received. Processing event...");
+    
+    const webhookEvent = req.body;
+    console.log("webhookEvent logged", webhookEvent);
+    console.log("webhookEvent.event_type", webhookEvent.event_type);
 
-  if (
-    webhookEvent.event_type === "PAYMENT.SALE.COMPLETED" ||
-    webhookEvent.event_type === "PAYMENT.SALE.DENIED"
-  ) {
-    const saleId = webhookEvent.resource.id;
+    if (
+      webhookEvent.event_type === "PAYMENT.SALE.COMPLETED" ||
+      webhookEvent.event_type === "PAYMENT.SALE.DENIED"
+    ) {
+      const saleId = webhookEvent.resource.id;
 
-    paypal.sale.get(saleId, (error, sale) => {
-      if (error) {
-        console.error("Error fetching sale details:", error.response);
-        return res.status(500).json({ error: "Failed to fetch sale details" });
-      }
+      paypal.sale.get(saleId, (error, sale) => {
+        if (error) {
+          console.error("Error fetching sale details:", error.response);
+          return res.status(500).json({ error: "Failed to fetch sale details" });
+        }
 
-      console.log("Sale details:", sale);
+        console.log("Sale details:", sale);
 
-      return res.status(200).json({ message: "webHook exceuted!", sale: sale });
-    });
-  } else {
-    console.log("Received webhook:", webhookEvent);
-    res.status(200).end();
+        return res.status(200).json({ message: "Webhook executed!", sale: sale });
+      });
+    } else {
+      console.log("Received unsupported webhook:", webhookEvent);
+      res.status(200).end();
+    }
+  } catch (error) {
+    console.error("Error processing webhook event:", error);
+    res.status(500).json({ error: "An error occurred while processing the webhook event." });
+  } finally {
+    console.log("Webhook processing complete.");
   }
 };
+
 
 module.exports = {
   paypalCheckout,
