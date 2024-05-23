@@ -26,8 +26,11 @@ const paypalCheckout = async (req, res) => {
       payment_method: "paypal",
     },
     redirect_urls: {
-      return_url: "https://paypal-server.loca.lt/api/paypal/success",
-      cancel_url: "https://paypal-server.loca.lt/api/paypal/cancel",
+      // return_url: "https://paypal-server.loca.lt/api/paypal/success",
+      return_url: "http://localhost:3000/api/paypal/success",
+      // cancel_url: "https://paypal-server.loca.lt/api/paypal/cancel",
+      cancel_url: "http://localhost:3000/api/paypal/cancel",
+
     },
     transactions: [
       {

@@ -5,8 +5,10 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const paypal = require("./routes/paypal.routes");
 const path = require("path");
+const morgan = require("morgan");
 
 // middlewares
+app.use(morgan("dev"))
 app.use(bodyParser.json());
 app.use(cors());
 app.use(express.json());
