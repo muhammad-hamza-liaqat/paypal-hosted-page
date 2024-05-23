@@ -3,8 +3,8 @@ const paypal = require("paypal-rest-sdk");
 // mode: "live" for live production
 paypal.configure({
   mode: "sandbox",
-  client_id: process.env.paypal_client_id,
-  client_secret: process.env.paypal_secret_key,
+  client_id: process.env.PAYPAL_CLIENT_ID,
+  client_secret: process.env.PAYPAL_SECRET_ID,
 });
 
 const productPageRender = async (req, res) => {
@@ -92,7 +92,7 @@ const webHookEvent = async (req, res) => {
 
       console.log("Sale details:", sale);
 
-      res.status(200).end();
+      return res.status(200).json({message: "webHook exceuted!", sale: sale});
     });
   } else {
     console.log("Received webhook:", webhookEvent);
