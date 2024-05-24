@@ -1,0 +1,17 @@
+{
+    "email": "muhammadhamzaliaqat9@gmail.com",
+    "amount": 120,
+    "currency": "USD",
+    "note": "testing payout",
+    "bankAccount": {
+      "bank_country": "US",
+      "account_number": "123456789",
+      "account_currency": "USD",
+      "account_name": "Hamza Liaqat",
+      "routing_number": "123456789",
+      "bank_name": "Bank of America",
+      "bank_address": "123 Main St, Anytown, USA",
+      "bank_code": "BOFAUS3N"
+    }
+  }
+  
