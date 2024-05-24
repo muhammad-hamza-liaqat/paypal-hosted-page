@@ -87,7 +87,6 @@ const paypalCheckout = async (req, res) => {
         description: "testing paypal in sandbox- nodejs enviroment",
       },
     ],
-    // experience_profile_id: "XP-XXXX-XXXX-XXXX-XXXX"
   };
 
   try {
@@ -117,7 +116,7 @@ const paypalCheckout = async (req, res) => {
 const webHookEvent = async (req, res) => {
   try {
     console.log("Webhook received. Processing event...");
-    
+
     const webhookEvent = req.body;
     console.log("webhookEvent logged", webhookEvent);
     console.log("webhookEvent.event_type", webhookEvent.event_type);
@@ -131,12 +130,16 @@ const webHookEvent = async (req, res) => {
       paypal.sale.get(saleId, (error, sale) => {
         if (error) {
           console.error("Error fetching sale details:", error.response);
-          return res.status(500).json({ error: "Failed to fetch sale details" });
+          return res
+            .status(500)
+            .json({ error: "Failed to fetch sale details" });
         }
 
         console.log("Sale details:", sale);
 
-        return res.status(200).json({ message: "Webhook executed!", sale: sale });
+        return res
+          .status(200)
+          .json({ message: "Webhook executed!", sale: sale });
       });
     } else {
       console.log("Received unsupported webhook:", webhookEvent);
@@ -144,12 +147,62 @@ const webHookEvent = async (req, res) => {
     }
   } catch (error) {
     console.error("Error processing webhook event:", error);
-    res.status(500).json({ error: "An error occurred while processing the webhook event." });
+    res
+      .status(500)
+      .json({ error: "An error occurred while processing the webhook event." });
   } finally {
     console.log("Webhook processing complete.");
   }
 };
 
+const paypalPayouts = async (req, res) => {
+  const { email, amount, currency, note, bankAccount } = req.body;
+  if (!email || !amount || !currency || !bankAccount) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  const payout = {
+    sender_batch_header: {
+      sender_batch_id: Math.random().toString(36).substring(9),
+      email_subject: "You have a payout!",
+      email_message:
+        "You have received a payout! Thanks for using our service!",
+    },
+    items: [
+      {
+        recipient_type: "EMAIL",
+        amount: {
+          value: amount,
+          currency: currency,
+        },
+        receiver: email,
+        note: note || "Thank you.",
+        sender_item_id: Math.random().toString(36).substring(9),
+        recipient_bank_account: {
+          bank_country: bankAccount.bank_country,
+          account_number: bankAccount.account_number,
+          account_currency: bankAccount.account_currency,
+          account_name: bankAccount.account_name,
+          routing_number: bankAccount.routing_number,
+          bank_name: bankAccount.bank_name,
+          bank_address: bankAccount.bank_address,
+          bank_code: bankAccount.bank_code
+        }
+      },
+    ],
+  };
+
+  paypal.payout.create(payout, (error, payout) => {
+    if (error) {
+      console.error(error);
+      return res.status(500).send(error);
+    } else {
+      console.log("Create Single Payout Response");
+      console.log(payout);
+      return res.status(200).send(payout);
+    }
+  });
+};
 
 module.exports = {
   paypalCheckout,
@@ -157,4 +210,5 @@ module.exports = {
   cancelPayment,
   successPayment,
   webHookEvent,
+  paypalPayouts
 };
